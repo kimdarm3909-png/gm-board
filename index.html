@@ -2074,13 +2074,14 @@
       const { error } = await supabaseClient.auth.signInWithOtp({
         email,
         options: {
+          shouldCreateUser: false,
           emailRedirectTo: window.location.href
         }
       });
 
       if (error) {
         console.error(error);
-        setAuthMessage("메일 전송에 실패했습니다. 허용된 이메일인지 확인해 주세요.", true);
+        setAuthMessage("메일 전송에 실패했습니다. 등록된 이메일인지 확인해 주세요.", true);
         return;
       }
 
