@@ -1,0 +1,2479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>지엠돌려막기</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --surface-soft: #f8f9fb;
+      --line: #e3e7ee;
+      --line-strong: #d6dbe4;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --muted-2: #9aa3af;
+      --accent: #111827;
+      --danger: #b91c1c;
+      --ok: #166534;
+      --shadow-sm: 0 4px 10px rgba(17, 24, 39, 0.04);
+      --shadow-md: 0 10px 24px rgba(17, 24, 39, 0.06);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      appearance: none;
+      -webkit-appearance: none;
+      border: 0;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .app {
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #ffffff;
+      border-right: 1px solid var(--line);
+      padding: 22px 16px;
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto;
+      gap: 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .auth-panel,
+    .member-panel {
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+    }
+
+    .auth-top,
+    .member-panel-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .auth-title,
+    .member-panel-title {
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .auth-status {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      line-height: 1;
+    }
+
+    .auth-status.is-unlocked {
+      color: var(--ok);
+      border-color: rgba(22, 101, 52, 0.18);
+      background: rgba(22, 101, 52, 0.06);
+    }
+
+    .auth-status.is-locked {
+      color: var(--danger);
+      border-color: rgba(185, 28, 28, 0.14);
+      background: rgba(185, 28, 28, 0.05);
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .member-summary {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .member-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .nav-section {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .nav-pill {
+      min-height: 42px;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid transparent;
+      text-align: left;
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .nav-pill.is-active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sidebar-footer {
+      color: var(--muted-2);
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 0 4px;
+    }
+
+    .main {
+      padding: 20px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .mobile-topbar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mobile-brand {
+      min-width: 0;
+    }
+
+    .mobile-brand strong {
+      display: block;
+      font-size: 20px;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    .mobile-brand span {
+      display: block;
+      margin-top: 3px;
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hamburger-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hamburger-icon {
+      width: 18px;
+      height: 12px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .hamburger-icon::before,
+    .hamburger-icon::after,
+    .hamburger-icon span {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .hamburger-icon::before { top: 0; }
+    .hamburger-icon span { top: 5px; }
+    .hamburger-icon::after { top: 10px; }
+
+    .mobile-drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.35);
+      z-index: 40;
+    }
+
+    .mobile-drawer-backdrop.is-open {
+      display: block;
+    }
+
+    .mobile-drawer {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(360px, 88vw);
+      height: 100vh;
+      background: #fff;
+      border-left: 1px solid var(--line);
+      box-shadow: -12px 0 30px rgba(17, 24, 39, 0.12);
+      z-index: 50;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .mobile-drawer.is-open {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .drawer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .drawer-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .drawer-close {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 18px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 48px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 0 16px;
+      outline: none;
+      box-shadow: var(--shadow-sm);
+      color: var(--text);
+    }
+
+    .search-input:focus,
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #b7bfcb;
+      box-shadow: 0 0 0 4px rgba(156, 163, 175, 0.12);
+      background: #fff;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-ghost {
+      min-height: 42px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    .filter-btn,
+    .calendar-nav,
+    .calendar-day,
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      vertical-align: middle;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .btn-ghost {
+      background: var(--surface-soft);
+      color: var(--muted);
+      border: 1px solid var(--line);
+      min-height: 34px;
+      padding: 0 12px;
+      font-size: 12px;
+    }
+
+    .btn-danger {
+      background: #fff;
+      color: var(--danger);
+      border: 1px solid rgba(185, 28, 28, 0.16);
+    }
+
+    .btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #111827 0%, #374151 100%);
+      color: #fff;
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.08;
+      letter-spacing: -0.05em;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.82);
+      max-width: 680px;
+    }
+
+    .hero-side {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(110px, 1fr));
+      gap: 10px;
+      width: min(520px, 100%);
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 4px;
+      letter-spacing: -0.04em;
+    }
+
+    .stat span {
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 16px 18px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .filter-btn.is-active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .board {
+      padding: 16px 18px 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .nav-pill[data-tab] {
+      justify-content: flex-start;
+    }
+
+    .tab-section {
+      display: none;
+    }
+
+    .tab-section.is-active {
+      display: block;
+    }
+
+    .session-layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 28%) minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .schedule-side {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .schedule-meta {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 18px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .schedule-meta-item {
+      display: grid;
+      gap: 4px;
+    }
+
+    .schedule-meta-item strong {
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .schedule-meta-item span {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    .field-label-hidden > label,
+    label.is-hidden {
+      display: none;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .card.collapsed .card-body {
+      display: none;
+    }
+
+    .card-head {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .card-head-main {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      min-width: 0;
+      align-items: start;
+    }
+
+    .card.collapsed .card-head-main {
+      display: none;
+    }
+
+    .card-head-summary {
+      display: none;
+      min-width: 0;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card.collapsed .card-head-summary {
+      display: flex;
+    }
+
+    .summary-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .summary-chip {
+      min-height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .mini-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    .card-body {
+      border-top: 1px solid var(--line);
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      background: linear-gradient(180deg, #fff 0%, #fbfcfd 100%);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .field label,
+    .section-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    input[type="text"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    select {
+      min-height: 42px;
+      border-radius: 12px;
+      padding: 0 12px;
+    }
+
+    textarea {
+      min-height: 110px;
+      border-radius: 16px;
+      padding: 12px 14px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .check-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: 16px;
+      padding: 8px;
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      overflow: hidden;
+    }
+
+    .check span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #111827;
+      flex-shrink: 0;
+    }
+
+    .pc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .calendar-widget {
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: 18px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      max-width: none;
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .calendar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .calendar-title {
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .calendar-nav {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 13px;
+      box-shadow: var(--shadow-sm);
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .calendar-help {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .calendar-weekdays,
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      width: 100%;
+    }
+
+    .calendar-weekdays span {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .calendar-empty,
+    .calendar-day {
+      aspect-ratio: 1 / 1;
+      min-height: 34px;
+      padding: 0;
+      font-size: 11px;
+    }
+
+    .calendar-empty {
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .calendar-day {
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--text);
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .calendar-day.is-selected {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+
+    .calendar-day.is-selected::after {
+      content: "";
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.75);
+    }
+
+    .selected-dates {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .date-chip {
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .memo-box,
+    .review-wrap {
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: 20px;
+      padding: 12px;
+      min-height: 100%;
+    }
+
+    .reviews-section {
+      display: none;
+      gap: 12px;
+    }
+
+    .reviews-section.is-visible {
+      display: grid;
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .review-box {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .review-box h4 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .info-panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow-md);
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .info-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .info-text {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .mini-item {
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      border-radius: 16px;
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .mini-item strong {
+      font-size: 13px;
+    }
+
+    .mini-item span {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .empty {
+      padding: 42px 20px;
+      border: 2px dashed var(--line-strong);
+      border-radius: 20px;
+      text-align: center;
+      color: var(--muted);
+      background: var(--surface-soft);
+    }
+
+    @media (max-width: 1180px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .side-stack {
+        order: -1;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-side {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-pill {
+        min-height: 36px;
+        padding: 0 10px;
+        font-size: 12px;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .mobile-topbar {
+        display: flex;
+      }
+
+      .main {
+        padding: 14px;
+      }
+
+      .card-head-main,
+      .pc-grid,
+      .reviews-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .main {
+        padding: 12px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        justify-content: stretch;
+      }
+
+      .top-actions > * {
+        flex: 1 1 auto;
+      }
+
+      .hero {
+        padding: 18px;
+        border-radius: 22px;
+      }
+
+      .hero h1 {
+        font-size: 24px;
+      }
+
+      .hero-side,
+      .card-head-main,
+      .pc-grid,
+      .reviews-grid,
+      .check-group,
+      .session-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .mini-actions {
+        flex-wrap: wrap;
+      }
+
+      .card-head {
+        align-items: start;
+      }
+
+      .card.collapsed .card-head {
+        grid-template-columns: 1fr;
+      }
+
+      .card.collapsed .mini-actions {
+        justify-content: flex-start;
+      }
+
+      .summary-title {
+        width: 100%;
+      }
+    }
+  
+
+    .hero-main {
+      min-width: 0;
+    }
+
+    .hero-toggle-btn {
+      display: none;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.16);
+      font-size: 12px;
+      font-weight: 800;
+      justify-self: start;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      vertical-align: middle;
+    }
+
+    .hero-collapsible {
+      display: contents;
+    }
+
+    .mobile-info-stack {
+      display: none;
+    }
+
+    @media (max-width: 1180px) {
+      .session-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-widget,
+      .schedule-side {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .calendar-weekdays,
+      .calendar-days {
+        gap: 4px;
+      }
+
+      .calendar-empty,
+      .calendar-day {
+        min-height: 32px;
+        font-size: 10px;
+      }
+    }
+
+    @media (max-width: 720px){
+      .side-stack { display:none; }
+
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .hero-main {
+        display: grid;
+        gap: 8px;
+      }
+
+      .hero p {
+        display: block;
+        margin-top: 6px;
+        font-size: 13px;
+      }
+
+      .hero-toggle-btn {
+        display: inline-flex;
+      }
+
+      .hero-collapsible {
+        display: none;
+      }
+
+      .hero.is-expanded .hero-collapsible {
+        display: grid;
+      }
+
+      .hero.is-expanded .hero-toggle-btn {
+        background: rgba(255,255,255,0.22);
+      }
+
+      .hero-side {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .mobile-info-stack {
+        display: grid;
+        gap: 14px;
+      }
+    }
+
+
+</style>
+</head>
+<body>
+  <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop"></div>
+
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-top">
+      <div class="drawer-title">메뉴</div>
+      <button type="button" class="drawer-close" id="closeDrawerBtn">×</button>
+    </div>
+
+    <section class="auth-panel">
+      <div class="auth-top">
+        <div class="auth-title">편집 권한</div>
+        <button type="button" class="btn-ghost" id="mobileLogoutBtn">로그아웃</button>
+      </div>
+
+      <div id="mobileAuthStatus" class="auth-status is-locked">🔒 읽기 모드</div>
+
+      <div class="auth-form" id="mobileLoginForm">
+        <input type="password" id="mobilePasswordInput" placeholder="비밀번호 입력" />
+        <button type="button" class="btn-primary" id="mobileLoginBtn">로그인</button>
+      </div>
+    </section>
+
+    <section class="member-panel">
+      <div class="member-panel-top">
+        <div class="member-panel-title">멤버</div>
+        <button type="button" class="btn-ghost" id="mobileToggleMemberSettingsBtn">설정 열기</button>
+      </div>
+      <div class="member-summary" id="mobileMemberSummaryText"></div>
+
+      <div id="mobileMemberSettingsArea">
+        <div class="member-grid">
+          <input type="text" id="mobileMemberAName" placeholder="멤버 A" />
+          <input type="text" id="mobileMemberBName" placeholder="멤버 B" />
+          <input type="text" id="mobileMemberCName" placeholder="멤버 C" />
+          <input type="text" id="mobileMemberDName" placeholder="멤버 D" />
+        </div>
+      </div>
+    </section>
+
+    <div class="nav-section">
+      <button type="button" class="nav-pill is-active" data-tab="board">시나리오 보드</button>
+      <button type="button" class="nav-pill" data-tab="log">플레이 로그</button>
+      <button type="button" class="nav-pill" data-tab="archive">후기 아카이브</button>
+    </div>
+
+    <div class="mobile-info-stack">
+      <section class="info-panel">
+        <div class="info-title">보드 사용법</div>
+        <div class="info-text" id="mobileSideInfoText">
+          참여 멤버를 체크하면 그 수에 맞춰 PC 입력칸도 자동으로 늘어나거나 줄어들어.
+          캘린더는 여러 날짜를 고를 수 있고, 다시 누르면 해제돼.
+        </div>
+      </section>
+
+      <section class="info-panel">
+        <div class="info-title">권한 상태</div>
+        <div class="mini-list">
+          <div class="mini-item">
+            <strong>읽기 모드</strong>
+            <span>로그인 전에는 내용 조회만 가능해.</span>
+          </div>
+          <div class="mini-item">
+            <strong>편집 모드</strong>
+            <span>로그인 후에만 추가, 삭제, 수정, 저장이 가능해.</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">GM Board</div>
+        <div class="brand-sub">시나리오 관리 + 플레이 기록 + 후기 아카이브</div>
+      </div>
+
+      <section class="auth-panel">
+        <div class="auth-top">
+          <div class="auth-title">편집 권한</div>
+          <button type="button" class="btn-ghost" id="logoutBtn">로그아웃</button>
+        </div>
+
+        <div id="authStatus" class="auth-status is-locked">🔒 읽기 모드</div>
+
+        <div class="auth-form" id="loginForm">
+          <input type="password" id="passwordInput" placeholder="비밀번호 입력" />
+          <button type="button" class="btn-primary" id="loginBtn">로그인</button>
+        </div>
+      </section>
+
+      <section class="member-panel">
+        <div class="member-panel-top">
+          <div class="member-panel-title">멤버</div>
+          <button type="button" class="btn-ghost" id="toggleMemberSettingsBtn">설정 열기</button>
+        </div>
+        <div class="member-summary" id="memberSummaryText"></div>
+
+        <div id="memberSettingsArea">
+          <div class="member-grid">
+            <input type="text" id="memberAName" placeholder="멤버 A" />
+            <input type="text" id="memberBName" placeholder="멤버 B" />
+            <input type="text" id="memberCName" placeholder="멤버 C" />
+            <input type="text" id="memberDName" placeholder="멤버 D" />
+          </div>
+        </div>
+      </section>
+
+      <div class="nav-section">
+        <button type="button" class="nav-pill is-active" data-tab="board">시나리오 보드</button>
+        <button type="button" class="nav-pill" data-tab="log">플레이 로그</button>
+        <button type="button" class="nav-pill" data-tab="archive">후기 아카이브</button>
+      </div>
+
+      <div class="sidebar-footer">
+        로그인 전에는 읽기만 가능하고, 로그인 후에만 수정할 수 있어.
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="mobile-topbar">
+        <div class="mobile-brand">
+          <strong>GM Board</strong>
+          <span>시나리오 관리 + 플레이 기록 + 후기 아카이브</span>
+        </div>
+        <button type="button" class="hamburger-btn" id="openDrawerBtn" aria-label="메뉴 열기">
+          <span class="hamburger-icon"><span></span></span>
+        </button>
+      </section>
+
+      <section class="topbar">
+        <div class="search-wrap">
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="제목, GM, 메모, 후기 검색"
+          />
+        </div>
+
+        <div class="top-actions">
+          <button type="button" class="btn-primary" id="addScenarioBtn">+ 시나리오 추가</button>
+          <button type="button" class="btn-secondary" id="saveBtn">저장</button>
+        </div>
+      </section>
+
+      <section class="hero" id="heroSection">
+        <div class="hero-main">
+          <h1 id="heroTitle">시나리오 보드</h1>
+          <p id="heroDescription">
+            1~4인 시나리오 관리 및 기록용 보드
+          </p>
+          <button type="button" class="hero-toggle-btn" id="heroToggleBtn">펼치기</button>
+        </div>
+
+        <div class="hero-collapsible">
+          <div class="hero-side">
+            <div class="stat">
+              <strong id="statAll">0</strong>
+              <span>전체 시나리오</span>
+            </div>
+            <div class="stat">
+              <strong id="statProgress">0</strong>
+              <span>진행 중</span>
+            </div>
+            <div class="stat">
+              <strong id="statDone">0</strong>
+              <span>완주</span>
+            </div>
+            <div class="stat">
+              <strong id="statReviews">0</strong>
+              <span>작성된 후기</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <section class="tab-section is-active" data-tab-panel="board">
+          <section class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Scenario List</div>
+              <div class="filter-bar">
+                <button type="button" class="filter-btn is-active" data-filter="all">전체</button>
+                <button type="button" class="filter-btn" data-filter="progress">진행 중</button>
+                <button type="button" class="filter-btn" data-filter="done">완주</button>
+                <button type="button" class="filter-btn" data-filter="undecided">미정</button>
+              </div>
+            </div>
+
+            <div id="board" class="board"></div>
+          </section>
+        </section>
+
+        <section class="tab-section" data-tab-panel="log">
+          <section class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Play Log</div>
+            </div>
+            <div id="logBoard" class="board"></div>
+          </section>
+        </section>
+
+        <section class="tab-section" data-tab-panel="archive">
+          <section class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Review Archive</div>
+            </div>
+            <div id="archiveBoard" class="board"></div>
+          </section>
+        </section>
+
+        <aside class="side-stack">
+          <section class="info-panel">
+            <div class="info-title">보드 사용법</div>
+            <div class="info-text" id="sideInfoText">
+              참여 멤버를 체크하면 그 수에 맞춰 PC 입력칸도 자동으로 늘어나거나 줄어들어.
+              캘린더는 여러 날짜를 고를 수 있고, 다시 누르면 해제돼.
+            </div>
+          </section>
+
+          <section class="info-panel">
+            <div class="info-title">권한 상태</div>
+            <div class="mini-list">
+              <div class="mini-item">
+                <strong>읽기 모드</strong>
+                <span>로그인 전에는 내용 조회만 가능해.</span>
+              </div>
+              <div class="mini-item">
+                <strong>편집 모드</strong>
+                <span>로그인 후에만 추가, 삭제, 수정, 저장이 가능해.</span>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <template id="scenarioTemplate">
+    <article class="card">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="field">
+            <label>시나리오 제목</label>
+            <input type="text" data-key="title" placeholder="" />
+          </div>
+
+          <div class="field">
+            <label>룰 / 시스템</label>
+            <select data-key="system">
+              <option value=""></option>
+              <option value="CoC 7판">CoC 7판</option>
+              <option value="inSANe">inSANe</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>GM</label>
+            <select data-key="gm"></select>
+          </div>
+
+          <div class="field">
+            <label>번역 여부</label>
+            <select data-key="translation">
+              <option value=""></option>
+              <option value="필요">필요</option>
+              <option value="불필요">불필요</option>
+              <option value="완료">완료</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card-head-summary">
+          <div class="summary-title" data-role="summaryTitle"></div>
+          <span class="summary-chip" data-role="summaryDates">날짜 미정</span>
+          <span class="summary-chip" data-role="summaryStatus">미정</span>
+          <span class="summary-chip" data-role="summaryReviews">후기 0개</span>
+        </div>
+
+        <div class="mini-actions">
+          <button type="button" class="btn-ghost" data-action="toggle">접기</button>
+          <button type="button" class="btn-ghost btn-danger" data-action="delete">삭제</button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="row" data-role="checksRow">
+          <div class="field" data-role="memberField">
+            <label>참여 멤버 체크</label>
+            <div class="check-group" data-role="memberCheckGroup"></div>
+          </div>
+
+          <div class="field" data-role="playField">
+            <label>플레이 체크</label>
+            <div class="check-group">
+              <label class="check"><input type="checkbox" data-key="played" /> <span>플레이 완료</span></label>
+              <label class="check"><input type="checkbox" data-key="scheduled" /> <span>일정 확정</span></label>
+              <label class="check"><input type="checkbox" data-key="characterReady" /> <span>PC 준비 완료</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" data-role="pcField">
+          <label data-role="pcLabel">PC 배정</label>
+          <div class="pc-grid" data-role="pcGrid"></div>
+        </div>
+
+        <div class="field" data-role="scheduleField">
+          <label>세션 일정 / 메모</label>
+          <div class="session-layout">
+            <div class="calendar-widget" data-role="calendarWidget"></div>
+            <div class="schedule-side">
+              <div class="memo-box" data-role="memoField">
+                <div class="field">
+                  <label>메모 / 설정 정리</label>
+                  <textarea data-key="memo" placeholder=""></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" data-role="linkField">
+          <label>링크</label>
+          <input type="text" data-key="link" placeholder="플레이 로그 페이지 링크" />
+        </div>
+
+        <div class="reviews-section" data-role="reviewsSection">
+          <div class="review-wrap">
+            <div class="section-label">플레이 후기</div>
+            <div class="reviews-grid">
+              <div class="review-box">
+                <h4 data-review-label="A">멤버 A 후기</h4>
+                <textarea data-key="reviewA" placeholder=""></textarea>
+              </div>
+              <div class="review-box">
+                <h4 data-review-label="B">멤버 B 후기</h4>
+                <textarea data-key="reviewB" placeholder=""></textarea>
+              </div>
+              <div class="review-box">
+                <h4 data-review-label="C">멤버 C 후기</h4>
+                <textarea data-key="reviewC" placeholder=""></textarea>
+              </div>
+              <div class="review-box">
+                <h4 data-review-label="D">멤버 D 후기</h4>
+                <textarea data-key="reviewD" placeholder=""></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const STORAGE_KEY = "trpg-4p-scenario-board-mono-v6";
+    const LOGIN_PASSWORD = "1234";
+
+    const sampleData = {
+      ui: {
+        memberSettingsCollapsed: true,
+        isLoggedIn: false,
+        mobileDrawerOpen: false,
+        mobileHeroExpanded: false,
+        currentTab: "board"
+      },
+      members: {
+        A: "멤버 A",
+        B: "멤버 B",
+        C: "멤버 C",
+        D: "멤버 D"
+      },
+      scenarios: [
+        {
+          title: "",
+          system: "",
+          gm: "",
+          translation: "",
+          status: "undecided",
+          memberA: false,
+          memberB: false,
+          memberC: false,
+          memberD: false,
+          played: false,
+          scheduled: false,
+          characterReady: false,
+          sessionDates: [],
+          calendarYear: new Date().getFullYear(),
+          calendarMonth: new Date().getMonth(),
+          memo: "",
+          link: "",
+          reviewA: "",
+          reviewB: "",
+          reviewC: "",
+          reviewD: "",
+          pcSlots: ["", "", "", ""],
+          collapsed: false
+        }
+      ]
+    };
+
+    const board = document.getElementById("board");
+    const logBoard = document.getElementById("logBoard");
+    const archiveBoard = document.getElementById("archiveBoard");
+    const template = document.getElementById("scenarioTemplate");
+    const addScenarioBtn = document.getElementById("addScenarioBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const searchInput = document.getElementById("searchInput");
+    const toggleMemberSettingsBtn = document.getElementById("toggleMemberSettingsBtn");
+    const memberSettingsArea = document.getElementById("memberSettingsArea");
+    const memberSummaryText = document.getElementById("memberSummaryText");
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    const tabButtons = document.querySelectorAll(".nav-pill[data-tab]");
+    const tabPanels = document.querySelectorAll(".tab-section");
+    const heroTitle = document.getElementById("heroTitle");
+    const heroDescription = document.getElementById("heroDescription");
+    const sideInfoText = document.getElementById("sideInfoText");
+    const mobileSideInfoText = document.getElementById("mobileSideInfoText");
+    const heroSection = document.getElementById("heroSection");
+    const heroToggleBtn = document.getElementById("heroToggleBtn");
+
+    const statAll = document.getElementById("statAll");
+    const statProgress = document.getElementById("statProgress");
+    const statDone = document.getElementById("statDone");
+    const statReviews = document.getElementById("statReviews");
+
+    const memberInputs = {
+      A: document.getElementById("memberAName"),
+      B: document.getElementById("memberBName"),
+      C: document.getElementById("memberCName"),
+      D: document.getElementById("memberDName")
+    };
+
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const passwordInput = document.getElementById("passwordInput");
+    const authStatus = document.getElementById("authStatus");
+    const loginForm = document.getElementById("loginForm");
+
+    const openDrawerBtn = document.getElementById("openDrawerBtn");
+    const closeDrawerBtn = document.getElementById("closeDrawerBtn");
+    const mobileDrawer = document.getElementById("mobileDrawer");
+    const mobileDrawerBackdrop = document.getElementById("mobileDrawerBackdrop");
+
+    const mobileLoginBtn = document.getElementById("mobileLoginBtn");
+    const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
+    const mobilePasswordInput = document.getElementById("mobilePasswordInput");
+    const mobileAuthStatus = document.getElementById("mobileAuthStatus");
+    const mobileLoginForm = document.getElementById("mobileLoginForm");
+    const mobileToggleMemberSettingsBtn = document.getElementById("mobileToggleMemberSettingsBtn");
+    const mobileMemberSettingsArea = document.getElementById("mobileMemberSettingsArea");
+    const mobileMemberSummaryText = document.getElementById("mobileMemberSummaryText");
+
+    const mobileMemberInputs = {
+      A: document.getElementById("mobileMemberAName"),
+      B: document.getElementById("mobileMemberBName"),
+      C: document.getElementById("mobileMemberCName"),
+      D: document.getElementById("mobileMemberDName")
+    };
+
+    let currentFilter = "all";
+    let currentSearch = "";
+
+    const tabMeta = {
+      board: {
+        title: "시나리오 보드",
+        description: "1~4인 시나리오 관리 및 기록용 보드",
+        sideText: "참여 멤버 체크 시 수에 맞춰 PC 입력칸이 자동 생성됩니다. 메모칸은 우측 하단을 드래그하여 길이를 늘릴 수 있습니다.",
+        searchPlaceholder: "제목, GM, 메모, 후기 검색"
+      },
+      log: {
+        title: "플레이 로그",
+        description: "완주 시나리오 목록",
+        sideText: "이 탭에서는 플레이 완료에 체크된 시나리오만 확인 가능합니다. 시나리오 카드 내에 플레이 로그 링크를 첨부할 수 있습니다.",
+        searchPlaceholder: "제목, GM, 후기 검색"
+      },
+      archive: {
+        title: "후기 아카이브",
+        description: "후기 작성된 시나리오 목록",
+        sideText: "이 탭에서는 후기 텍스트가 하나 이상 들어간 시나리오만 확인 가능합니다. 시나리오의 기본 정보와 후기 내용을 확인할 수 있습니다.",
+        searchPlaceholder: "제목, 내용 검색"
+      }
+    };
+    let state = loadData();
+
+    function cloneSample() {
+      return JSON.parse(JSON.stringify(sampleData));
+    }
+
+    function normalizeScenario(scenario = {}) {
+      const now = new Date();
+      return {
+        title: scenario.title ?? "",
+        system: scenario.system ?? "",
+        gm: scenario.gm ?? "",
+        translation: scenario.translation ?? "",
+        status: ["undecided", "progress", "done"].includes(scenario.status) ? scenario.status : "undecided",
+        memberA: Boolean(scenario.memberA),
+        memberB: Boolean(scenario.memberB),
+        memberC: Boolean(scenario.memberC),
+        memberD: Boolean(scenario.memberD),
+        played: Boolean(scenario.played),
+        scheduled: Boolean(scenario.scheduled),
+        characterReady: Boolean(scenario.characterReady),
+        sessionDates: Array.isArray(scenario.sessionDates) ? scenario.sessionDates.filter((v) => typeof v === "string") : [],
+        calendarYear: Number.isInteger(scenario.calendarYear) ? scenario.calendarYear : now.getFullYear(),
+        calendarMonth: Number.isInteger(scenario.calendarMonth) ? scenario.calendarMonth : now.getMonth(),
+        memo: scenario.memo ?? "",
+        link: scenario.link ?? "",
+        reviewA: scenario.reviewA ?? "",
+        reviewB: scenario.reviewB ?? "",
+        reviewC: scenario.reviewC ?? "",
+        reviewD: scenario.reviewD ?? "",
+        pcSlots: Array.isArray(scenario.pcSlots)
+          ? [scenario.pcSlots[0] ?? "", scenario.pcSlots[1] ?? "", scenario.pcSlots[2] ?? "", scenario.pcSlots[3] ?? ""]
+          : ["", "", "", ""],
+        collapsed: Boolean(scenario.collapsed)
+      };
+    }
+
+    function normalizeState(parsed) {
+      const base = cloneSample();
+      return {
+        ui: {
+          memberSettingsCollapsed: typeof parsed?.ui?.memberSettingsCollapsed === "boolean"
+            ? parsed.ui.memberSettingsCollapsed
+            : base.ui.memberSettingsCollapsed,
+          isLoggedIn: typeof parsed?.ui?.isLoggedIn === "boolean"
+            ? parsed.ui.isLoggedIn
+            : base.ui.isLoggedIn,
+          mobileDrawerOpen: false,
+          mobileHeroExpanded: typeof parsed?.ui?.mobileHeroExpanded === "boolean"
+            ? parsed.ui.mobileHeroExpanded
+            : base.ui.mobileHeroExpanded,
+          currentTab: ["board", "log", "archive"].includes(parsed?.ui?.currentTab)
+            ? parsed.ui.currentTab
+            : base.ui.currentTab
+        },
+        members: {
+          A: parsed?.members?.A || base.members.A,
+          B: parsed?.members?.B || base.members.B,
+          C: parsed?.members?.C || base.members.C,
+          D: parsed?.members?.D || base.members.D
+        },
+        scenarios: Array.isArray(parsed?.scenarios)
+          ? parsed.scenarios.map((item) => normalizeScenario(item))
+          : base.scenarios.map((item) => normalizeScenario(item))
+      };
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return normalizeState(cloneSample());
+        return normalizeState(JSON.parse(raw));
+      } catch {
+        return normalizeState(cloneSample());
+      }
+    }
+
+    function saveData() {
+      const payload = {
+        ...state,
+        ui: {
+          ...state.ui,
+          mobileDrawerOpen: false
+        }
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }
+
+    function isEditable() {
+      return Boolean(state.ui.isLoggedIn);
+    }
+
+    function guardedAction(callback) {
+      if (!isEditable()) {
+        alert("로그인 후 편집할 수 있습니다.");
+        return;
+      }
+      callback();
+    }
+
+    function createEmptyScenario() {
+      return normalizeScenario({});
+    }
+
+    function getMemberNames() {
+      return {
+        A: state.members.A || "멤버 A",
+        B: state.members.B || "멤버 B",
+        C: state.members.C || "멤버 C",
+        D: state.members.D || "멤버 D"
+      };
+    }
+
+    function updateMemberSummary() {
+      const names = getMemberNames();
+      const text = [names.A, names.B, names.C, names.D].join(" / ");
+      memberSummaryText.textContent = text;
+      mobileMemberSummaryText.textContent = text;
+    }
+
+    function syncMemberSettingsInputs() {
+      Object.entries(memberInputs).forEach(([key, input]) => {
+        input.value = state.members[key] || `멤버 ${key}`;
+      });
+      Object.entries(mobileMemberInputs).forEach(([key, input]) => {
+        input.value = state.members[key] || `멤버 ${key}`;
+      });
+    }
+
+    function syncMemberSettingsUI() {
+      const collapsed = state.ui.memberSettingsCollapsed;
+      const editable = isEditable();
+
+      memberSettingsArea.style.display = collapsed ? "none" : "block";
+      mobileMemberSettingsArea.style.display = collapsed ? "none" : "block";
+
+      toggleMemberSettingsBtn.textContent = collapsed ? "설정 열기" : "설정 닫기";
+      mobileToggleMemberSettingsBtn.textContent = collapsed ? "설정 열기" : "설정 닫기";
+
+      toggleMemberSettingsBtn.style.display = editable ? "inline-flex" : "none";
+      mobileToggleMemberSettingsBtn.style.display = editable ? "inline-flex" : "none";
+
+      updateMemberSummary();
+      syncMemberSettingsInputs();
+    }
+
+    function syncAuthUI() {
+      const loggedIn = isEditable();
+
+      authStatus.textContent = loggedIn ? "🟢 편집 모드" : "🔒 읽기 모드";
+      authStatus.className = loggedIn ? "auth-status is-unlocked" : "auth-status is-locked";
+
+      mobileAuthStatus.textContent = loggedIn ? "🟢 편집 모드" : "🔒 읽기 모드";
+      mobileAuthStatus.className = loggedIn ? "auth-status is-unlocked" : "auth-status is-locked";
+
+      loginForm.style.display = loggedIn ? "none" : "grid";
+      mobileLoginForm.style.display = loggedIn ? "none" : "grid";
+
+      logoutBtn.style.display = loggedIn ? "inline-flex" : "none";
+      mobileLogoutBtn.style.display = loggedIn ? "inline-flex" : "none";
+
+      passwordInput.value = "";
+      mobilePasswordInput.value = "";
+
+      const disabledTop = !loggedIn;
+      addScenarioBtn.classList.toggle("btn-disabled", disabledTop);
+      saveBtn.classList.toggle("btn-disabled", disabledTop);
+
+      Object.values(memberInputs).forEach((input) => {
+        input.disabled = !loggedIn;
+      });
+      Object.values(mobileMemberInputs).forEach((input) => {
+        input.disabled = !loggedIn;
+      });
+
+      toggleMemberSettingsBtn.classList.toggle("btn-disabled", !loggedIn);
+      mobileToggleMemberSettingsBtn.classList.toggle("btn-disabled", !loggedIn);
+    }
+
+    function bindMemberInputSet(inputSet) {
+      Object.entries(inputSet).forEach(([key, input]) => {
+        input.addEventListener("input", (e) => {
+          if (!isEditable()) {
+            e.target.value = state.members[key] || `멤버 ${key}`;
+            return;
+          }
+          state.members[key] = e.target.value.trim() || `멤버 ${key}`;
+          saveData();
+          syncMemberSettingsUI();
+          render();
+        });
+      });
+    }
+
+    function getReviewCount(scenario) {
+      return ["reviewA", "reviewB", "reviewC", "reviewD"]
+        .filter((key) => String(scenario[key] || "").trim().length > 0)
+        .length;
+    }
+
+    function getSelectedMemberKeys(scenario) {
+      return ["A", "B", "C", "D"].filter((key) => scenario[`member${key}`]);
+    }
+
+    function getStatusText(scenario) {
+      if (scenario.played || scenario.status === "done") return "완주";
+      if (scenario.status === "progress") return "진행 중";
+      if (scenario.scheduled || scenario.characterReady) return "진행 중";
+      return "미정";
+    }
+
+    function formatDate(dateString) {
+      if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return "";
+      const [y, m, d] = dateString.split("-");
+      return `${y}.${m}.${d}`;
+    }
+
+    function formatDateSummary(dates) {
+      if (!Array.isArray(dates) || dates.length === 0) return "날짜 미정";
+      const sorted = [...dates].sort();
+      if (sorted.length <= 2) return sorted.map(formatDate).join(", ");
+      return `${formatDate(sorted[0])} 외 ${sorted.length - 1}일`;
+    }
+
+    function renderStats() {
+      const scenarios = state.scenarios;
+      statAll.textContent = scenarios.length;
+      statProgress.textContent = scenarios.filter((item) => getStatusText(item) === "진행 중").length;
+      statDone.textContent = scenarios.filter((item) => getStatusText(item) === "완주").length;
+      statReviews.textContent = scenarios.reduce((sum, item) => sum + getReviewCount(item), 0);
+    }
+
+
+    function syncTabUI() {
+      const currentTab = state.ui.currentTab || "board";
+      tabButtons.forEach((button) => {
+        button.classList.toggle("is-active", button.dataset.tab === currentTab);
+      });
+      tabPanels.forEach((panel) => {
+        panel.classList.toggle("is-active", panel.dataset.tabPanel === currentTab);
+      });
+
+      const meta = tabMeta[currentTab] || tabMeta.board;
+      heroTitle.textContent = meta.title;
+      heroDescription.textContent = meta.description;
+      sideInfoText.textContent = meta.sideText;
+      if (mobileSideInfoText) mobileSideInfoText.textContent = meta.sideText;
+      searchInput.placeholder = meta.searchPlaceholder;
+    }
+
+    function updateFilterButtons() {
+      filterButtons.forEach((button) => {
+        const active = button.dataset.filter === currentFilter;
+        button.classList.toggle("is-active", active);
+      });
+    }
+
+    function getSearchHaystack(scenario) {
+      return [
+        scenario.title,
+        scenario.gm,
+        scenario.memo,
+        scenario.link,
+        scenario.reviewA,
+        scenario.reviewB,
+        scenario.reviewC,
+        scenario.reviewD,
+        ...(scenario.pcSlots || [])
+      ].join(" ").toLowerCase();
+    }
+
+    function matchesCurrentTab(scenario) {
+      const currentTab = state.ui.currentTab || "board";
+      if (currentTab === "log") return getStatusText(scenario) === "완주";
+      if (currentTab === "archive") return getReviewCount(scenario) > 0;
+      return true;
+    }
+
+    function getFilteredScenarios(tab = state.ui.currentTab || "board") {
+      return state.scenarios.filter((scenario) => {
+        if (tab === "log" && getStatusText(scenario) !== "완주") return false;
+        if (tab === "archive" && getReviewCount(scenario) === 0) return false;
+        const status = getStatusText(scenario);
+
+        const matchesFilter = currentFilter === "all"
+          ? true
+          : currentFilter === "done"
+            ? status === "완주"
+            : currentFilter === "progress"
+              ? status === "진행 중"
+              : status === "미정";
+
+        const matchesSearch = !currentSearch || getSearchHaystack(scenario).includes(currentSearch.toLowerCase());
+        return matchesFilter && matchesSearch;
+      });
+    }
+
+    function renderPCGrid(pcGrid, scenarioIndex, pcField) {
+      const scenario = state.scenarios[scenarioIndex];
+      const memberKeys = getSelectedMemberKeys(scenario);
+
+      if (memberKeys.length === 0) {
+        if (!isEditable() && state.ui.currentTab !== "log") {
+          pcGrid.innerHTML = "";
+          pcField?.classList.add("is-hidden");
+          return;
+        }
+        pcField?.classList.remove("is-hidden");
+        pcGrid.innerHTML = isEditable()
+          ? `<div class="empty">참여 멤버를 체크하면 PC 입력칸이 자동으로 생겨.</div>`
+          : `<div class="empty">아직 배정된 PC가 없어요.</div>`;
+        return;
+      }
+
+      pcField?.classList.remove("is-hidden");
+
+      pcGrid.innerHTML = "";
+
+      memberKeys.forEach((memberKey, visibleIndex) => {
+        const field = document.createElement("div");
+        field.className = "field";
+
+        const label = document.createElement("label");
+        label.textContent = `PC ${visibleIndex + 1}`;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = scenario.pcSlots[visibleIndex] || "";
+        input.placeholder = "";
+        input.disabled = !isEditable();
+
+        input.addEventListener("input", (e) => {
+          if (!isEditable()) {
+            e.target.value = scenario.pcSlots[visibleIndex] || "";
+            return;
+          }
+          state.scenarios[scenarioIndex].pcSlots[visibleIndex] = e.target.value;
+          saveData();
+        });
+
+        field.appendChild(label);
+        field.appendChild(input);
+        pcGrid.appendChild(field);
+      });
+    }
+
+    function renderGMOptions(selectEl, currentValue) {
+      const names = Object.values(getMemberNames());
+
+      selectEl.innerHTML = `<option value=""></option>`;
+      names.forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        if (name === currentValue) option.selected = true;
+        selectEl.appendChild(option);
+      });
+    }
+
+    function renderCalendar(calendarWidget, scenarioIndex, syncSummary) {
+      const scenario = state.scenarios[scenarioIndex];
+      const selectedDates = Array.isArray(scenario.sessionDates) ? scenario.sessionDates : [];
+      const currentYear = scenario.calendarYear;
+      const currentMonth = scenario.calendarMonth;
+      const editable = isEditable();
+
+      const firstDay = new Date(currentYear, currentMonth, 1);
+      const startWeekday = firstDay.getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+
+      let daysHtml = "";
+      for (let i = 0; i < startWeekday; i += 1) {
+        daysHtml += `<div class="calendar-empty"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        const dateValue = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const isSelected = selectedDates.includes(dateValue);
+
+        daysHtml += `
+          <button
+            type="button"
+            class="calendar-day ${isSelected ? "is-selected" : ""}"
+            data-date="${dateValue}"
+            ${editable ? "" : "disabled"}
+          >${day}</button>
+        `;
+      }
+
+      calendarWidget.innerHTML = `
+        <div class="calendar-top">
+          <button type="button" class="calendar-nav" data-cal-nav="prev">‹</button>
+          <div class="calendar-title">${currentYear}년 ${currentMonth + 1}월</div>
+          <button type="button" class="calendar-nav" data-cal-nav="next">›</button>
+        </div>
+
+        <div class="calendar-help">중복 체크 가능. 다시 클릭하면 해제됩니다.</div>
+
+        <div class="calendar-weekdays">
+          ${weekdays.map((item) => `<span>${item}</span>`).join("")}
+        </div>
+
+        <div class="calendar-days">${daysHtml}</div>
+
+        <div class="selected-dates">
+          ${
+            selectedDates.length
+              ? [...selectedDates].sort().map((date) => `<span class="date-chip">${formatDate(date)}</span>`).join("")
+              : `<span class="date-chip">선택된 날짜 없음</span>`
+          }
+        </div>
+      `;
+
+      const prevButton = calendarWidget.querySelector('[data-cal-nav="prev"]');
+      const nextButton = calendarWidget.querySelector('[data-cal-nav="next"]');
+
+      prevButton?.addEventListener("click", () => {
+        let year = state.scenarios[scenarioIndex].calendarYear;
+        let month = state.scenarios[scenarioIndex].calendarMonth - 1;
+        if (month < 0) {
+          month = 11;
+          year -= 1;
+        }
+        state.scenarios[scenarioIndex].calendarYear = year;
+        state.scenarios[scenarioIndex].calendarMonth = month;
+        saveData();
+        renderCalendar(calendarWidget, scenarioIndex, syncSummary);
+      });
+
+      nextButton?.addEventListener("click", () => {
+        let year = state.scenarios[scenarioIndex].calendarYear;
+        let month = state.scenarios[scenarioIndex].calendarMonth + 1;
+        if (month > 11) {
+          month = 0;
+          year += 1;
+        }
+        state.scenarios[scenarioIndex].calendarYear = year;
+        state.scenarios[scenarioIndex].calendarMonth = month;
+        saveData();
+        renderCalendar(calendarWidget, scenarioIndex, syncSummary);
+      });
+
+      calendarWidget.querySelectorAll(".calendar-day").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (!editable) return;
+
+          const date = button.dataset.date;
+          const dates = new Set(state.scenarios[scenarioIndex].sessionDates || []);
+          if (dates.has(date)) {
+            dates.delete(date);
+          } else {
+            dates.add(date);
+          }
+          state.scenarios[scenarioIndex].sessionDates = [...dates].sort();
+          saveData();
+          renderCalendar(calendarWidget, scenarioIndex, syncSummary);
+          syncSummary();
+        });
+      });
+    }
+
+    function syncHeroUI() {
+      const expanded = Boolean(state.ui.mobileHeroExpanded);
+      heroSection?.classList.toggle("is-expanded", expanded);
+      if (heroToggleBtn) {
+        heroToggleBtn.textContent = expanded ? "접기" : "펼치기";
+      }
+    }
+
+    function syncDrawerUI() {
+      const open = Boolean(state.ui.mobileDrawerOpen);
+      mobileDrawer.classList.toggle("is-open", open);
+      mobileDrawerBackdrop.classList.toggle("is-open", open);
+      document.body.style.overflow = open ? "hidden" : "";
+    }
+
+    function openDrawer() {
+      state.ui.mobileDrawerOpen = true;
+      syncDrawerUI();
+    }
+
+    function closeDrawer() {
+      state.ui.mobileDrawerOpen = false;
+      syncDrawerUI();
+    }
+
+    function doLogin(password) {
+      if (password === LOGIN_PASSWORD) {
+        state.ui.isLoggedIn = true;
+        saveData();
+        render();
+        closeDrawer();
+      } else {
+        alert("비밀번호가 틀렸습니다.");
+      }
+    }
+
+    function doLogout() {
+      state.ui.isLoggedIn = false;
+      saveData();
+      render();
+      closeDrawer();
+    }
+
+    function renderBoardList(targetBoard, tabName) {
+      targetBoard.innerHTML = "";
+      const names = getMemberNames();
+      const filteredScenarios = getFilteredScenarios(tabName);
+
+      if (filteredScenarios.length === 0) {
+        const emptyMessage = tabName === "log"
+          ? "완주한 시나리오가 아직 없어요."
+          : tabName === "archive"
+            ? "작성된 후기가 아직 없어요."
+            : "표시할 시나리오가 없어요.";
+        targetBoard.innerHTML = `<div class="empty">${emptyMessage}</div>`;
+        return;
+      }
+
+      filteredScenarios.forEach((scenario) => {
+        const index = state.scenarios.indexOf(scenario);
+        const fragment = template.content.cloneNode(true);
+        const card = fragment.querySelector(".card");
+        const gmSelect = fragment.querySelector('[data-key="gm"]');
+        const checksRow = fragment.querySelector('[data-role="checksRow"]');
+        const playField = fragment.querySelector('[data-role="playField"]');
+        const memberField = fragment.querySelector('[data-role="memberField"]');
+        const pcField = fragment.querySelector('[data-role="pcField"]');
+        const pcLabel = fragment.querySelector('[data-role="pcLabel"]');
+        const scheduleField = fragment.querySelector('[data-role="scheduleField"]');
+        const memoField = fragment.querySelector('[data-role="memoField"]');
+        const linkField = fragment.querySelector('[data-role="linkField"]');
+        const pcGrid = fragment.querySelector('[data-role="pcGrid"]');
+        const calendarWidget = fragment.querySelector('[data-role="calendarWidget"]');
+        const reviewsSection = fragment.querySelector('[data-role="reviewsSection"]');
+        const summaryTitle = fragment.querySelector('[data-role="summaryTitle"]');
+        const summaryDates = fragment.querySelector('[data-role="summaryDates"]');
+        const summaryStatus = fragment.querySelector('[data-role="summaryStatus"]');
+        const summaryReviews = fragment.querySelector('[data-role="summaryReviews"]');
+
+        const toggleBtn = fragment.querySelector('[data-action="toggle"]');
+        const deleteBtn = fragment.querySelector('[data-action="delete"]');
+
+        const memberCheckGroup = fragment.querySelector('[data-role="memberCheckGroup"]');
+        memberCheckGroup.innerHTML = ["A", "B", "C", "D"].map((key) => `
+          <label class="check"><input type="checkbox" data-key="member${key}" ${scenario[`member${key}`] ? "checked" : ""} /> <span>${names[key]}</span></label>
+        `).join("");
+
+        fragment.querySelector('[data-review-label="A"]').textContent = `${names.A} 후기`;
+        fragment.querySelector('[data-review-label="B"]').textContent = `${names.B} 후기`;
+        fragment.querySelector('[data-review-label="C"]').textContent = `${names.C} 후기`;
+        fragment.querySelector('[data-review-label="D"]').textContent = `${names.D} 후기`;
+
+        renderGMOptions(gmSelect, scenario.gm);
+
+        card.classList.toggle("collapsed", scenario.collapsed);
+        toggleBtn.textContent = scenario.collapsed ? "펼치기" : "접기";
+
+        function syncSummary() {
+          const current = state.scenarios[index];
+          summaryTitle.textContent = current.title?.trim() || "제목 없는 시나리오";
+          summaryDates.textContent = formatDateSummary(current.sessionDates);
+          summaryStatus.textContent = getStatusText(current);
+          summaryReviews.textContent = `후기 ${getReviewCount(current)}개`;
+
+          const showReviews = tabName !== "log" && (getStatusText(current) === "완주" || getReviewCount(current) > 0 || tabName === "archive");
+          reviewsSection.classList.toggle("is-visible", showReviews);
+        }
+
+        fragment.querySelectorAll("[data-key]").forEach((el) => {
+          const key = el.dataset.key;
+
+          if (el.type === "checkbox") {
+            el.checked = Boolean(scenario[key]);
+          } else if (key !== "gm") {
+            el.value = scenario[key] ?? "";
+          }
+
+          el.disabled = !isEditable();
+
+          const handler = (e) => {
+            if (!isEditable()) {
+              render();
+              return;
+            }
+
+            const value = el.type === "checkbox" ? e.target.checked : e.target.value;
+            state.scenarios[index][key] = value;
+
+            if (key === "played" && value) {
+              state.scenarios[index].status = "done";
+            } else if (key === "played" && !value && state.scenarios[index].status === "done") {
+              state.scenarios[index].status = state.scenarios[index].scheduled || state.scenarios[index].characterReady
+                ? "progress"
+                : "undecided";
+            }
+
+            if (["scheduled", "characterReady"].includes(key) && !state.scenarios[index].played) {
+              state.scenarios[index].status = (state.scenarios[index].scheduled || state.scenarios[index].characterReady)
+                ? "progress"
+                : "undecided";
+            }
+
+            if (key.startsWith("member")) {
+              renderPCGrid(pcGrid, index, pcField);
+            }
+
+            saveData();
+            renderStats();
+            syncSummary();
+          };
+
+          el.addEventListener("input", handler);
+          el.addEventListener("change", handler);
+        });
+
+        if (tabName === "archive") {
+          checksRow?.classList.add("is-hidden");
+          playField?.classList.add("is-hidden");
+          memberField?.classList.add("is-hidden");
+          pcField?.classList.remove("field-label-hidden");
+          pcLabel?.classList.remove("is-hidden");
+          pcField?.classList.add("is-hidden");
+          scheduleField?.classList.add("is-hidden");
+          memoField?.classList.add("is-hidden");
+          linkField?.classList.add("is-hidden");
+          deleteBtn.classList.add("is-hidden");
+        } else if (tabName === "log") {
+          checksRow?.classList.add("is-hidden");
+          playField?.classList.add("is-hidden");
+          memberField?.classList.add("is-hidden");
+          linkField?.classList.remove("is-hidden");
+          scheduleField?.classList.add("is-hidden");
+          memoField?.classList.add("is-hidden");
+          reviewsSection?.classList.remove("is-visible");
+          pcField?.classList.add("field-label-hidden");
+          pcLabel?.classList.add("is-hidden");
+        } else {
+          checksRow?.classList.remove("is-hidden");
+          playField?.classList.remove("is-hidden");
+          memberField?.classList.remove("is-hidden");
+          linkField?.classList.add("is-hidden");
+          pcField?.classList.remove("field-label-hidden");
+          pcLabel?.classList.remove("is-hidden");
+        }
+
+        if (tabName !== "archive") {
+          renderPCGrid(pcGrid, index, pcField);
+        }
+        if (tabName === "board") {
+          renderCalendar(calendarWidget, index, syncSummary);
+        }
+        syncSummary();
+
+        if (!isEditable()) {
+          deleteBtn.classList.add("btn-disabled");
+        }
+
+        toggleBtn.addEventListener("click", () => {
+          state.scenarios[index].collapsed = !state.scenarios[index].collapsed;
+          saveData();
+          render();
+        });
+
+        deleteBtn.addEventListener("click", () => {
+          if (!isEditable()) {
+            alert("로그인 후 편집할 수 있습니다.");
+            return;
+          }
+          state.scenarios.splice(index, 1);
+          saveData();
+          render();
+        });
+
+        targetBoard.appendChild(fragment);
+      });
+    }
+
+    function render() {
+      syncMemberSettingsUI();
+      syncAuthUI();
+      syncTabUI();
+      updateFilterButtons();
+      renderStats();
+      syncDrawerUI();
+      renderBoardList(board, "board");
+      renderBoardList(logBoard, "log");
+      renderBoardList(archiveBoard, "archive");
+    }
+
+    toggleMemberSettingsBtn.addEventListener("click", () => {
+      guardedAction(() => {
+        state.ui.memberSettingsCollapsed = !state.ui.memberSettingsCollapsed;
+        saveData();
+        syncMemberSettingsUI();
+      });
+    });
+
+    mobileToggleMemberSettingsBtn.addEventListener("click", () => {
+      guardedAction(() => {
+        state.ui.memberSettingsCollapsed = !state.ui.memberSettingsCollapsed;
+        saveData();
+        syncMemberSettingsUI();
+      });
+    });
+
+    addScenarioBtn.addEventListener("click", () => {
+      guardedAction(() => {
+        state.scenarios.push(createEmptyScenario());
+        saveData();
+        render();
+        const cards = board.querySelectorAll(".card");
+        const lastCard = cards[cards.length - 1];
+        lastCard?.scrollIntoView({ behavior: "auto", block: "start" });
+      });
+    });
+
+    saveBtn.addEventListener("click", () => {
+      guardedAction(() => {
+        saveData();
+        alert("저장했어요.");
+      });
+    });
+
+    loginBtn.addEventListener("click", () => {
+      doLogin(passwordInput.value);
+    });
+
+    mobileLoginBtn.addEventListener("click", () => {
+      doLogin(mobilePasswordInput.value);
+    });
+
+    passwordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") loginBtn.click();
+    });
+
+    mobilePasswordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") mobileLoginBtn.click();
+    });
+
+    logoutBtn.addEventListener("click", doLogout);
+    mobileLogoutBtn.addEventListener("click", doLogout);
+
+    searchInput.addEventListener("input", (e) => {
+      currentSearch = e.target.value || "";
+      render();
+    });
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+        render();
+      });
+    });
+
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.ui.currentTab = button.dataset.tab || "board";
+        saveData();
+        render();
+        closeDrawer();
+      });
+    });
+
+    openDrawerBtn.addEventListener("click", openDrawer);
+    closeDrawerBtn.addEventListener("click", closeDrawer);
+    mobileDrawerBackdrop.addEventListener("click", closeDrawer);
+
+    heroToggleBtn?.addEventListener("click", () => {
+      state.ui.mobileHeroExpanded = !state.ui.mobileHeroExpanded;
+      saveData();
+      syncHeroUI();
+    });
+
+    bindMemberInputSet(memberInputs);
+    bindMemberInputSet(mobileMemberInputs);
+    syncMemberSettingsUI();
+    render();
+  </script>
+</body>
+</html>
