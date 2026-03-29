@@ -1566,9 +1566,18 @@
     </article>
   </template>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
     const STORAGE_KEY = "trpg-4p-scenario-board-mono-v6";
     const LOGIN_PASSWORD = "1234";
+
+    const SUPABASE_URL = "https://syyaknckmtzfasqnxsjx.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_9-vt45dMALdP9HVVawxdCw_cjmoOWbL";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let suppressRemoteSave = false;
+    let remoteSaveTimer = null;
 
     const sampleData = {
       ui: {
@@ -1704,6 +1713,7 @@
     function normalizeScenario(scenario = {}) {
       const now = new Date();
       return {
+        remoteId: scenario.remoteId ?? scenario.id ?? null,
         title: scenario.title ?? "",
         system: scenario.system ?? "",
         gm: scenario.gm ?? "",
@@ -1762,6 +1772,148 @@
       };
     }
 
+
+    function scenarioToDbRow(scenario, index) {
+      return {
+        id: scenario.remoteId || undefined,
+        title: scenario.title ?? "",
+        system: scenario.system ?? "",
+        gm: scenario.gm ?? "",
+        translation: scenario.translation ?? "",
+        status: scenario.status ?? "undecided",
+        member_a: Boolean(scenario.memberA),
+        member_b: Boolean(scenario.memberB),
+        member_c: Boolean(scenario.memberC),
+        member_d: Boolean(scenario.memberD),
+        played: Boolean(scenario.played),
+        scheduled: Boolean(scenario.scheduled),
+        character_ready: Boolean(scenario.characterReady),
+        session_dates: Array.isArray(scenario.sessionDates) ? scenario.sessionDates : [],
+        calendar_year: Number.isInteger(scenario.calendarYear) ? scenario.calendarYear : new Date().getFullYear(),
+        calendar_month: Number.isInteger(scenario.calendarMonth) ? scenario.calendarMonth : new Date().getMonth(),
+        memo: scenario.memo ?? "",
+        link: scenario.link ?? "",
+        review_a: scenario.reviewA ?? "",
+        review_b: scenario.reviewB ?? "",
+        review_c: scenario.reviewC ?? "",
+        review_d: scenario.reviewD ?? "",
+        pc_slots: Array.isArray(scenario.pcSlots) ? scenario.pcSlots : ["", "", "", ""],
+        collapsed: Boolean(scenario.collapsed),
+        sort_order: index
+      };
+    }
+
+    function dbRowToScenario(row = {}) {
+      return normalizeScenario({
+        remoteId: row.id ?? null,
+        title: row.title ?? "",
+        system: row.system ?? "",
+        gm: row.gm ?? "",
+        translation: row.translation ?? "",
+        status: row.status ?? "undecided",
+        memberA: Boolean(row.member_a),
+        memberB: Boolean(row.member_b),
+        memberC: Boolean(row.member_c),
+        memberD: Boolean(row.member_d),
+        played: Boolean(row.played),
+        scheduled: Boolean(row.scheduled),
+        characterReady: Boolean(row.character_ready),
+        sessionDates: Array.isArray(row.session_dates) ? row.session_dates : [],
+        calendarYear: Number.isInteger(row.calendar_year) ? row.calendar_year : new Date().getFullYear(),
+        calendarMonth: Number.isInteger(row.calendar_month) ? row.calendar_month : new Date().getMonth(),
+        memo: row.memo ?? "",
+        link: row.link ?? "",
+        reviewA: row.review_a ?? "",
+        reviewB: row.review_b ?? "",
+        reviewC: row.review_c ?? "",
+        reviewD: row.review_d ?? "",
+        pcSlots: Array.isArray(row.pc_slots) ? row.pc_slots : ["", "", "", ""],
+        collapsed: Boolean(row.collapsed)
+      });
+    }
+
+    async function fetchRemoteScenarios() {
+      const { data, error } = await supabaseClient
+        .from("scenarios")
+        .select("*")
+        .order("sort_order", { ascending: true })
+        .order("updated_at", { ascending: true });
+
+      if (error) {
+        console.error("원격 데이터 불러오기 실패:", error);
+        return null;
+      }
+
+      return Array.isArray(data) ? data.map(dbRowToScenario) : [];
+    }
+
+    async function syncStateFromRemote() {
+      const remoteScenarios = await fetchRemoteScenarios();
+      if (!remoteScenarios) return;
+
+      suppressRemoteSave = true;
+      state.scenarios = remoteScenarios.length ? remoteScenarios : [createEmptyScenario()];
+      saveLocalSnapshot();
+      render();
+      suppressRemoteSave = false;
+    }
+
+    async function overwriteRemoteScenarios() {
+      if (suppressRemoteSave) return;
+
+      const rows = state.scenarios.map((scenario, index) => scenarioToDbRow(scenario, index));
+      const currentIds = rows.map((row) => row.id).filter(Boolean);
+
+      if (currentIds.length) {
+        const in_list = `(${currentIds.map((id) => `"${id}"`).join(",")})`;
+        const { error: deleteError } = await supabaseClient
+          .from("scenarios")
+          .delete()
+          .not("id", "in", in_list);
+
+        if (deleteError) {
+          console.error("원격 삭제 동기화 실패:", deleteError);
+        }
+      }
+
+      const { data, error } = await supabaseClient
+        .from("scenarios")
+        .upsert(rows)
+        .select();
+
+      if (error) {
+        console.error("원격 저장 실패:", error);
+        return;
+      }
+
+      const idBySort = new Map((data || []).map((row) => [row.sort_order, row.id]));
+      state.scenarios.forEach((scenario, index) => {
+        const savedId = idBySort.get(index);
+        if (savedId) scenario.remoteId = savedId;
+      });
+
+      saveLocalSnapshot();
+    }
+
+    function scheduleRemoteSave() {
+      if (suppressRemoteSave) return;
+      window.clearTimeout(remoteSaveTimer);
+      remoteSaveTimer = window.setTimeout(() => {
+        overwriteRemoteScenarios();
+      }, 500);
+    }
+
+    function saveLocalSnapshot() {
+      const payload = {
+        ...state,
+        ui: {
+          ...state.ui,
+          mobileDrawerOpen: false
+        }
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }
+
     function loadData() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -1773,14 +1925,8 @@
     }
 
     function saveData() {
-      const payload = {
-        ...state,
-        ui: {
-          ...state.ui,
-          mobileDrawerOpen: false
-        }
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      saveLocalSnapshot();
+      scheduleRemoteSave();
     }
 
     function isEditable() {
@@ -1795,8 +1941,13 @@
       callback();
     }
 
+    function generateClientId() {
+      if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+      return `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
     function createEmptyScenario() {
-      return normalizeScenario({});
+      return normalizeScenario({ remoteId: generateClientId() });
     }
 
     function getMemberNames() {
@@ -2378,6 +2529,7 @@
       syncMemberSettingsUI();
       syncAuthUI();
       syncTabUI();
+      syncHeroUI();
       updateFilterButtons();
       renderStats();
       syncDrawerUI();
@@ -2473,7 +2625,20 @@
     bindMemberInputSet(memberInputs);
     bindMemberInputSet(mobileMemberInputs);
     syncMemberSettingsUI();
+
+    supabaseClient
+      .channel("shared-scenarios")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "scenarios" },
+        async () => {
+          await syncStateFromRemote();
+        }
+      )
+      .subscribe();
+
     render();
+    syncStateFromRemote();
   </script>
 </body>
 </html>
