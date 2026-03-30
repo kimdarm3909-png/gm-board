@@ -1883,19 +1883,20 @@
           C: parsed?.members?.C || base.members.C,
           D: parsed?.members?.D || base.members.D
         },
-        scenarios: Array.isArray(parsed?.scenarios)
-          ? parsed.scenarios.map((item) => normalizeScenario(item))
-          : base.scenarios.map((item) => normalizeScenario(item))
+        scenarios: [createEmptyScenario()]
       };
     }
 
 
     function saveLocalSnapshot() {
       const payload = {
-        ...state,
         ui: {
-          ...state.ui,
-          mobileDrawerOpen: false
+          memberSettingsCollapsed: state.ui.memberSettingsCollapsed,
+          mobileHeroExpanded: state.ui.mobileHeroExpanded,
+          currentTab: state.ui.currentTab
+        },
+        members: {
+          ...state.members
         }
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -2055,6 +2056,10 @@
       sessionEmailBtn.style.display = session ? "inline-flex" : "none";
       sessionEmailBtn.textContent = session?.user?.email || "접속 중";
 
+      if (session && window.location.hash && window.location.hash.includes("access_token")) {
+        history.replaceState({}, "", window.location.pathname + window.location.search);
+      }
+
       if (session) {
         setAuthMessage("");
         await syncStateFromRemote();
@@ -2081,7 +2086,12 @@
 
       if (error) {
         console.error(error);
-        setAuthMessage("메일 전송에 실패했습니다. 등록된 이메일인지 확인해 주세요.", true);
+        const message = String(error.message || "").toLowerCase();
+        if (message.includes("rate limit") || message.includes("too many") || message.includes("email rate limit exceeded")) {
+          setAuthMessage("메일 발송 제한에 걸렸습니다. 잠시 후 다시 시도해 주세요.", true);
+        } else {
+          setAuthMessage("메일 전송에 실패했습니다. 등록된 이메일인지 확인해 주세요.", true);
+        }
         return;
       }
 
