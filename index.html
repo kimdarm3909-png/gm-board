@@ -1681,7 +1681,12 @@
     const STORAGE_KEY = "trpg-4p-scenario-board-mono-v6";
     const SUPABASE_URL = "https://syyaknckmtzfasqnxsjx.supabase.co";
     const SUPABASE_KEY = "sb_publishable_9-vt45dMALdP9HVVawxdCw_cjmoOWbL";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        flowType: "pkce",
+        detectSessionInUrl: true
+      }
+    });
 
     const sampleData = {
       ui: {
@@ -2099,6 +2104,19 @@
     }
 
     async function refreshSession() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+
+      if (code) {
+        const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
+        if (error) {
+          console.error(error);
+          setAuthMessage("로그인 링크를 처리하지 못했습니다. 새 매직링크를 다시 요청해 주세요.", true);
+          return;
+        }
+        history.replaceState({}, "", window.location.pathname);
+      }
+
       const { data, error } = await supabaseClient.auth.getSession();
       if (error) {
         console.error(error);
