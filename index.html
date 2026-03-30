@@ -1268,16 +1268,25 @@
       color: var(--ok);
     }
 
-    .app.is-hidden,
-    .mobile-topbar.is-hidden {
+    .app.is-hidden {
       display: none !important;
     }
 
-    .top-auth-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+    .session-email-badge {
+      display: none;
+      align-items: center;
+      min-height: 42px;
+      padding: 0 14px;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 12px;
+      white-space: nowrap;
+      background: var(--surface-soft);
+      color: var(--muted);
+      border: 1px solid var(--line);
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     @media (max-width: 720px) {
@@ -1311,8 +1320,8 @@
       <div id="mobileAuthStatus" class="auth-status is-locked">🔒 읽기 모드</div>
 
       <div class="auth-form" id="mobileLoginForm">
-        <input type="password" id="mobilePasswordInput" placeholder="이메일로 매직링크" />
-        <button type="button" class="btn-primary" id="mobileLoginBtn">매직링크</button>
+        <input type="password" id="mobilePasswordInput" placeholder="비밀번호 입력" />
+        <button type="button" class="btn-primary" id="mobileLoginBtn">로그인</button>
       </div>
     </section>
 
@@ -1343,8 +1352,8 @@
       <section class="info-panel">
         <div class="info-title">보드 사용법</div>
         <div class="info-text" id="mobileSideInfoText">
-          참여 멤버 체크 시 수에 맞춰 PC 입력칸이 자동 생성됩니다.
-          메모칸은 우측 하단을 드래그하여 길이를 늘릴 수 있습니다.
+          참여 멤버를 체크하면 그 수에 맞춰 PC 입력칸도 자동으로 늘어나거나 줄어들어.
+          캘린더는 여러 날짜를 고를 수 있고, 다시 누르면 해제돼.
         </div>
       </section>
 
@@ -1353,11 +1362,11 @@
         <div class="mini-list">
           <div class="mini-item">
             <strong>읽기 모드</strong>
-            <span>로그인 전에는 내용 조회만 가능합니다.</span>
+            <span>로그인 전에는 내용 조회만 가능해.</span>
           </div>
           <div class="mini-item">
             <strong>편집 모드</strong>
-            <span>로그인 후 추가, 삭제, 수정, 저장이 가능합니다.</span>
+            <span>로그인 후에만 추가, 삭제, 수정, 저장이 가능해.</span>
           </div>
         </div>
       </section>
@@ -1369,7 +1378,7 @@
     <div class="auth-card">
       <div>
         <h1>지엠돌려막기</h1>
-        <p>초대된 친구만 접속 가능한 보드입니다. 등록된 이메일로 매직링크를 받아 로그인해 주세요.</p>
+        <p>초대된 친구만 접속 가능한 보드입니다. 등록된 이메일과 비밀번호로 로그인해 주세요.</p>
       </div>
 
       <div class="field">
@@ -1377,14 +1386,20 @@
         <input type="text" id="authEmailInput" placeholder="example@email.com" />
       </div>
 
+      <div class="field">
+        <label>비밀번호</label>
+        <input type="password" id="authPasswordInput" placeholder="비밀번호 입력" />
+      </div>
+
       <div class="auth-inline">
-        <button type="button" class="btn-primary" id="sendMagicLinkBtn">매직링크 보내기</button>
+        <button type="button" class="btn-primary" id="passwordLoginBtn">로그인</button>
         <button type="button" class="btn-secondary" id="refreshSessionBtn">로그인 확인</button>
       </div>
 
       <div class="auth-message" id="authMessage"></div>
+
       <div class="auth-help">
-        메일함에서 로그인 링크를 눌러 다시 이 페이지로 돌아오면 자동으로 접속됩니다.
+        등록된 이메일만 로그인 가능합니다. 친구 계정은 Supabase Authentication의 Users에서 미리 추가해 주세요.
       </div>
     </div>
   </section>
@@ -1405,7 +1420,7 @@
         <div id="authStatus" class="auth-status is-locked">🔒 읽기 모드</div>
 
         <div class="auth-form" id="loginForm">
-          <input type="password" id="passwordInput" placeholder="이메일로 로그인" />
+          <input type="password" id="passwordInput" placeholder="비밀번호 입력" />
           <button type="button" class="btn-primary" id="loginBtn">로그인</button>
         </div>
       </section>
@@ -1434,7 +1449,7 @@
       </div>
 
       <div class="sidebar-footer">
-        로그인 후 수정이 가능합니다.
+        로그인 전에는 읽기만 가능하고, 로그인 후에만 수정할 수 있어.
       </div>
     </aside>
 
@@ -1462,7 +1477,7 @@
         <div class="top-actions">
           <button type="button" class="btn-primary" id="addScenarioBtn">+ 시나리오 추가</button>
           <button type="button" class="btn-secondary" id="saveBtn">저장</button>
-          <button type="button" class="btn-secondary" id="sessionEmailBtn">접속 중</button>
+          <span class="session-email-badge" id="sessionEmailBadge"></span>
         </div>
       </section>
 
@@ -1536,8 +1551,8 @@
           <section class="info-panel">
             <div class="info-title">보드 사용법</div>
             <div class="info-text" id="sideInfoText">
-              참여 멤버 체크 시 수에 맞춰 PC 입력칸이 자동 생성됩니다.
-              메모칸은 우측 하단을 드래그하여 길이를 늘릴 수 있습니다.
+              참여 멤버를 체크하면 그 수에 맞춰 PC 입력칸도 자동으로 늘어나거나 줄어들어.
+              캘린더는 여러 날짜를 고를 수 있고, 다시 누르면 해제돼.
             </div>
           </section>
 
@@ -1546,11 +1561,11 @@
             <div class="mini-list">
               <div class="mini-item">
                 <strong>읽기 모드</strong>
-                <span>로그인 전에는 내용 조회만 가능합니다.</span>
+                <span>로그인 전에는 내용 조회만 가능해.</span>
               </div>
               <div class="mini-item">
                 <strong>편집 모드</strong>
-                <span>로그인 후 추가, 삭제, 수정, 저장이 가능합니다.</span>
+                <span>로그인 후에만 추가, 삭제, 수정, 저장이 가능해.</span>
               </div>
             </div>
           </section>
@@ -1681,12 +1696,7 @@
     const STORAGE_KEY = "trpg-4p-scenario-board-mono-v6";
     const SUPABASE_URL = "https://syyaknckmtzfasqnxsjx.supabase.co";
     const SUPABASE_KEY = "sb_publishable_9-vt45dMALdP9HVVawxdCw_cjmoOWbL";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: {
-        flowType: "pkce",
-        detectSessionInUrl: true
-      }
-    });
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const sampleData = {
       ui: {
@@ -1794,10 +1804,11 @@
     const authGate = document.getElementById("authGate");
     const appRoot = document.getElementById("appRoot");
     const authEmailInput = document.getElementById("authEmailInput");
-    const sendMagicLinkBtn = document.getElementById("sendMagicLinkBtn");
+    const authPasswordInput = document.getElementById("authPasswordInput");
+    const passwordLoginBtn = document.getElementById("passwordLoginBtn");
     const refreshSessionBtn = document.getElementById("refreshSessionBtn");
     const authMessage = document.getElementById("authMessage");
-    const sessionEmailBtn = document.getElementById("sessionEmailBtn");
+    const sessionEmailBadge = document.getElementById("sessionEmailBadge");
 
     let currentSession = null;
     let suppressRemoteSave = false;
@@ -1871,9 +1882,7 @@
           memberSettingsCollapsed: typeof parsed?.ui?.memberSettingsCollapsed === "boolean"
             ? parsed.ui.memberSettingsCollapsed
             : base.ui.memberSettingsCollapsed,
-          isLoggedIn: typeof parsed?.ui?.isLoggedIn === "boolean"
-            ? parsed.ui.isLoggedIn
-            : base.ui.isLoggedIn,
+          isLoggedIn: false,
           mobileDrawerOpen: false,
           mobileHeroExpanded: typeof parsed?.ui?.mobileHeroExpanded === "boolean"
             ? parsed.ui.mobileHeroExpanded
@@ -1891,7 +1900,6 @@
         scenarios: [createEmptyScenario()]
       };
     }
-
 
     function saveLocalSnapshot() {
       const payload = {
@@ -1975,7 +1983,7 @@
 
       if (error) {
         console.error("원격 데이터 불러오기 실패:", error);
-        setAuthMessage("데이터를 불러오지 못했습니다. 권한 설정을 확인해 주세요.", true);
+        setAuthMessage("데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.", true);
         return null;
       }
 
@@ -1988,7 +1996,6 @@
 
       suppressRemoteSave = true;
       state.scenarios = remoteScenarios.length ? remoteScenarios : [createEmptyScenario()];
-      saveLocalSnapshot();
       render();
       suppressRemoteSave = false;
     }
@@ -1997,17 +2004,26 @@
       if (suppressRemoteSave || !currentSession) return;
 
       const rows = state.scenarios.map((scenario, index) => scenarioToDbRow(scenario, index));
-      const currentIds = rows.map((row) => row.id).filter(Boolean);
+      const ids = rows.map((row) => row.id).filter(Boolean);
 
-      if (currentIds.length) {
-        const inList = `(${currentIds.map((id) => `"${id}"`).join(",")})`;
+      if (ids.length > 0) {
+        const inList = `(${ids.map((id) => `"${id}"`).join(",")})`;
         const { error: deleteError } = await supabaseClient
           .from("scenarios")
           .delete()
           .not("id", "in", inList);
 
         if (deleteError) {
-          console.error("삭제 동기화 실패:", deleteError);
+          console.error("원격 삭제 동기화 실패:", deleteError);
+        }
+      } else {
+        const { error: clearError } = await supabaseClient
+          .from("scenarios")
+          .delete()
+          .not("id", "is", null);
+
+        if (clearError) {
+          console.error("원격 전체 삭제 실패:", clearError);
         }
       }
 
@@ -2024,11 +2040,9 @@
 
       const idBySort = new Map((data || []).map((row) => [row.sort_order, row.id]));
       state.scenarios.forEach((scenario, index) => {
-        const savedId = idBySort.get(index);
-        if (savedId) scenario.remoteId = savedId;
+        const remoteId = idBySort.get(index);
+        if (remoteId) scenario.remoteId = remoteId;
       });
-
-      saveLocalSnapshot();
     }
 
     function scheduleRemoteSave() {
@@ -2036,7 +2050,7 @@
       window.clearTimeout(remoteSaveTimer);
       remoteSaveTimer = window.setTimeout(() => {
         overwriteRemoteScenarios();
-      }, 450);
+      }, 300);
     }
 
     function setAuthMessage(message = "", isError = false, isOk = false) {
@@ -2054,16 +2068,21 @@
     async function applySession(session) {
       currentSession = session || null;
       state.ui.isLoggedIn = Boolean(session);
-      saveLocalSnapshot();
-
       authGate.style.display = session ? "none" : "flex";
       appRoot.classList.toggle("is-hidden", !session);
-      sessionEmailBtn.style.display = session ? "inline-flex" : "none";
-      sessionEmailBtn.textContent = session?.user?.email || "접속 중";
 
-      if (session && window.location.hash && window.location.hash.includes("access_token")) {
-        history.replaceState({}, "", window.location.pathname + window.location.search);
+      if (sessionEmailBadge) {
+        if (session?.user?.email) {
+          sessionEmailBadge.style.display = "inline-flex";
+          sessionEmailBadge.textContent = session.user.email;
+        } else {
+          sessionEmailBadge.style.display = "none";
+          sessionEmailBadge.textContent = "";
+        }
       }
+
+      syncAuthUI();
+      syncMemberSettingsUI();
 
       if (session) {
         setAuthMessage("");
@@ -2073,50 +2092,41 @@
       }
     }
 
-    async function sendMagicLink() {
+    async function doLogin() {
       const email = (authEmailInput.value || "").trim();
-      if (!email) {
-        setAuthMessage("이메일을 입력해 주세요.", true);
+      const password = authPasswordInput.value || "";
+
+      if (!email || !password) {
+        setAuthMessage("이메일과 비밀번호를 모두 입력해 주세요.", true);
         return;
       }
 
-      setAuthMessage("메일을 보내는 중입니다...");
-      const { error } = await supabaseClient.auth.signInWithOtp({
+      setAuthMessage("로그인 중입니다...");
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
-        options: {
-          shouldCreateUser: false,
-          emailRedirectTo: window.location.href
-        }
+        password
       });
 
       if (error) {
         console.error(error);
-        const message = String(error.message || "").toLowerCase();
-        if (message.includes("rate limit") || message.includes("too many") || message.includes("email rate limit exceeded")) {
-          setAuthMessage("메일 발송 제한에 걸렸습니다. 잠시 후 다시 시도해 주세요.", true);
-        } else {
-          setAuthMessage("메일 전송에 실패했습니다. 등록된 이메일인지 확인해 주세요.", true);
-        }
+        setAuthMessage("로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해 주세요.", true);
         return;
       }
 
-      setAuthMessage("매직링크를 보냈어요. 메일함에서 링크를 눌러 주세요.", false, true);
+      await applySession(data.session);
+    }
+
+    async function doLogout() {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        console.error(error);
+      }
+      authPasswordInput.value = "";
+      await applySession(null);
+      closeDrawer();
     }
 
     async function refreshSession() {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-
-      if (code) {
-        const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
-        if (error) {
-          console.error(error);
-          setAuthMessage("로그인 링크를 처리하지 못했습니다. 새 매직링크를 다시 요청해 주세요.", true);
-          return;
-        }
-        history.replaceState({}, "", window.location.pathname);
-      }
-
       const { data, error } = await supabaseClient.auth.getSession();
       if (error) {
         console.error(error);
@@ -2202,20 +2212,20 @@
     function syncAuthUI() {
       const loggedIn = isEditable();
 
-      authStatus.textContent = loggedIn ? "🟢 편집 모드" : "🔒 읽기 모드";
+      authStatus.textContent = loggedIn ? "🟢 접속 중" : "🔒 로그인 필요";
       authStatus.className = loggedIn ? "auth-status is-unlocked" : "auth-status is-locked";
 
-      mobileAuthStatus.textContent = loggedIn ? "🟢 편집 모드" : "🔒 읽기 모드";
+      mobileAuthStatus.textContent = loggedIn ? "🟢 접속 중" : "🔒 로그인 필요";
       mobileAuthStatus.className = loggedIn ? "auth-status is-unlocked" : "auth-status is-locked";
 
-      loginForm.style.display = loggedIn ? "none" : "grid";
-      mobileLoginForm.style.display = loggedIn ? "none" : "grid";
+      loginForm.style.display = "none";
+      mobileLoginForm.style.display = "none";
 
       logoutBtn.style.display = loggedIn ? "inline-flex" : "none";
       mobileLogoutBtn.style.display = loggedIn ? "inline-flex" : "none";
 
-      passwordInput.value = currentSession?.user?.email || "";
-      mobilePasswordInput.value = currentSession?.user?.email || "";
+      passwordInput.value = loggedIn ? (currentSession?.user?.email || "") : "로그인 화면에서 이메일/비밀번호로 접속해 주세요.";
+      mobilePasswordInput.value = loggedIn ? (currentSession?.user?.email || "") : "로그인 화면에서 이메일/비밀번호로 접속해 주세요.";
       passwordInput.disabled = true;
       mobilePasswordInput.disabled = true;
 
@@ -2364,7 +2374,7 @@
         }
         pcField?.classList.remove("is-hidden");
         pcGrid.innerHTML = isEditable()
-          ? `<div class="empty">참여 멤버 체크 시 수에 맞춰 PC 입력칸이 자동 생성됩니다.</div>`
+          ? `<div class="empty">참여 멤버를 체크하면 PC 입력칸이 자동으로 생겨.</div>`
           : `<div class="empty">아직 배정된 PC가 없어요.</div>`;
         return;
       }
@@ -2540,19 +2550,6 @@
     function closeDrawer() {
       state.ui.mobileDrawerOpen = false;
       syncDrawerUI();
-    }
-
-    async function doLogin() {
-      await sendMagicLink();
-    }
-
-    async function doLogout() {
-      const { error } = await supabaseClient.auth.signOut();
-      if (error) {
-        console.error(error);
-      }
-      await applySession(null);
-      closeDrawer();
     }
 
     function renderBoardList(targetBoard, tabName) {
@@ -2778,18 +2775,14 @@
 
     loginBtn.addEventListener("click", doLogin);
     mobileLoginBtn.addEventListener("click", doLogin);
-    sendMagicLinkBtn.addEventListener("click", doLogin);
+    passwordLoginBtn.addEventListener("click", doLogin);
     refreshSessionBtn.addEventListener("click", refreshSession);
 
-    passwordInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") doLogin();
-    });
-
-    mobilePasswordInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") doLogin();
-    });
-
     authEmailInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doLogin();
+    });
+
+    authPasswordInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") doLogin();
     });
 
